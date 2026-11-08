@@ -1,0 +1,17 @@
+{
+  "nombre": "Reclamo con otro ya abierto",
+  "descripcion": "C-03 reclama por P-1007, que ya tiene el reclamo R-001 abierto. El agente debe informar ese reclamo y no abrir otro.",
+  "cliente": "C-03",
+  "turnos": [
+    "Quiero reclamar el pedido P-1007, el televisor llegó con la pantalla rota."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-1007" }, "cantidad": 1 },
+      { "archivo": "reclamos", "donde": { "id": "R-001" }, "esperado": { "estado": "abierto" } }
+    ]
+  }
+}

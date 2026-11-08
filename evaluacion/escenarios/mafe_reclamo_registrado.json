@@ -1,0 +1,20 @@
+{
+  "nombre": "Reclamo registrado",
+  "descripcion": "C-01 reclama por P-1002 (electrónica, entregado hace 13 días) y en el segundo turno da el motivo. El agente debe registrar un reclamo abierto con ese pedido.",
+  "cliente": "C-01",
+  "turnos": [
+    "Quiero poner un reclamo por mi pedido P-1002.",
+    "El audífono izquierdo no suena."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["registrar_reclamo"],
+    "herramientas_no_llamadas": ["cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [
+      { "herramienta": "registrar_reclamo", "contiene": { "numero": "P-1002" } }
+    ],
+    "estado_final": [
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-1002" }, "cantidad": 1 },
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-1002" }, "esperado": { "estado": "abierto", "cliente_id": "C-01" } }
+    ]
+  }
+}

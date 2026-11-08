@@ -1,0 +1,14 @@
+{
+  "nombre": "Consulta sin número de pedido",
+  "descripcion": "C-01 pregunta por 'su pedido' sin dar el número. El agente debe pedir el número, no adivinarlo ni elegir uno por su cuenta.",
+  "cliente": "C-01",
+  "turnos": [
+    "Hola, quiero saber cómo va mi pedido."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["consultar_pedido", "registrar_reclamo", "cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": []
+  }
+}
