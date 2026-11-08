@@ -239,5 +239,21 @@
     ],
     "total": 280000,
     "nota_cliente": "Por favor llamar antes de entregar."
+  },
+  {
+    "numero": "P-9001",
+    "cliente_id": "C-01",
+    "fecha_compra": "2026-09-28",
+    "fecha_entrega": "2026-10-04",
+    "estado": "entregado",
+    "productos": [
+      {
+        "nombre": "Pantalón de dril",
+        "categoria": "ropa",
+        "cantidad": 1,
+        "precio_unitario": 120000
+      }
+    ],
+    "total": 120000
   }
 ]

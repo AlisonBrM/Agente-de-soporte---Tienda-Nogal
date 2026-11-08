@@ -1,0 +1,16 @@
+{
+  "nombre": "Reclamo fuera de plazo",
+  "descripcion": "C-01 reclama por P-1003 (perecedero, plazo de 3 días, entregado hace 8). La política no lo permite: no debe quedar ningún reclamo registrado.",
+  "cliente": "C-01",
+  "turnos": [
+    "Quiero reclamar por mi pedido P-1003, la canasta de frutas llegó con la fruta dañada."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-1003" }, "cantidad": 0 }
+    ]
+  }
+}

@@ -134,3 +134,19 @@ def test_producto_que_no_esta_en_el_pedido():
     resultado = reclamar("C-04", "P-1010", producto="televisor")
     assert "no está en el pedido" in resultado["error"]
     assert reclamos_de("P-1010") == []
+
+
+# --- Pedido propio P-9001 (tienda/semilla): ropa entregada el 4 oct, cliente regular (30 días) ---
+
+def test_p9001_ultimo_dia_del_plazo_si_procede():
+    # HOY = 2 nov: 29 días después de la entrega, es decir, el día 30 contando el de entrega.
+    resultado = reclamar("C-01", "P-9001", tipo="defectuoso", motivo="El pantalón llegó con una costura rota")
+    assert resultado["registrado"] is True
+    assert len(reclamos_de("P-9001")) == 1
+
+
+def test_p9001_un_dia_despues_ya_no_procede(monkeypatch):
+    # El 3 nov sería el día 31.
+    monkeypatch.setattr(repositorio, "HOY", date(2026, 11, 3))
+    assert "plazo" in reclamar("C-01", "P-9001")["error"]
+    assert reclamos_de("P-9001") == []

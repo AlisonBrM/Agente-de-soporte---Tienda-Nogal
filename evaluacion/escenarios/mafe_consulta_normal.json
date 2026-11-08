@@ -1,0 +1,18 @@
+{
+  "nombre": "Consulta normal de un pedido propio",
+  "descripcion": "C-01 pregunta por su pedido P-1002. El agente debe consultarlo con la herramienta, no inventar el estado.",
+  "cliente": "C-01",
+  "turnos": [
+    "Hola, ¿me dices en qué va mi pedido P-1002?"
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["consultar_pedido"],
+    "herramientas_no_llamadas": ["registrar_reclamo", "cancelar_pedido", "solicitar_reembolso", "escalar_a_asesor"],
+    "argumentos": [
+      { "herramienta": "consultar_pedido", "contiene": { "numero": "P-1002" } }
+    ],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1002" }, "esperado": { "estado": "entregado" } }
+    ]
+  }
+}
