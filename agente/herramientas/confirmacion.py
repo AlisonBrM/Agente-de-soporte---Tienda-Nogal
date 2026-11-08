@@ -22,6 +22,13 @@ PALABRAS_NEGACION_O_DUDA = {
     "luego",
     "detente",
     "para",
+    "pero",
+    "aunque",
+    "primero",
+    "antes",
+    "pensarlo",
+    "pensar",
+    "dejame",
 }
 
 FRASES_NEGACION_O_DUDA = (
@@ -46,9 +53,9 @@ PALABRAS_INTERROGATIVAS = {
 }
 
 PALABRAS_AFIRMATIVAS = {
+    "si",
     "confirmo",
     "confirmado",
-    "confirmar",
     "dale",
     "ok",
     "okay",
@@ -65,6 +72,14 @@ PALABRAS_AFIRMATIVAS = {
     "exacto",
     "afirmativo",
     "hagale",
+    "cancelalo",
+    "cancelacion",
+    "la",
+    "lo",
+    "de",
+    "acuerdo",
+    "por",
+    "favor",
 }
 
 FRASES_AFIRMATIVAS = (
@@ -107,14 +122,7 @@ def es_afirmativo(texto: str) -> bool:
     if any(frase in normalizado for frase in FRASES_NEGACION_O_DUDA):
         return False
 
-    if palabras[0] == "si":
-        return True
-    if any(p in PALABRAS_AFIRMATIVAS for p in palabras):
-        return True
-    if any(frase in normalizado for frase in FRASES_AFIRMATIVAS):
-        return True
-
-    return False
+    return all(p in PALABRAS_AFIRMATIVAS for p in palabras)
 
 
 def registrar_pendiente(sesion: Sesion, clave: str) -> None:
@@ -123,7 +131,8 @@ def registrar_pendiente(sesion: Sesion, clave: str) -> None:
 
 
 def verificar_confirmacion(sesion: Sesion, clave: str) -> bool:
-    """Devuelve True solo si la clave está pendiente de un turno previo y el último mensaje es afirmativo."""
+    """Devuelve True solo si la clave quedó pendiente en el turno inmediatamente anterior
+    y el último mensaje del cliente es afirmativo."""
     if clave not in sesion.confirmaciones_pendientes:
         return False
 
@@ -132,4 +141,6 @@ def verificar_confirmacion(sesion: Sesion, clave: str) -> bool:
         return False
 
     del sesion.confirmaciones_pendientes[clave]
+    if sesion.turnos != turno_guardado + 1:
+        return False
     return es_afirmativo(sesion.ultimo_mensaje)
