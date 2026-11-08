@@ -110,7 +110,8 @@ Clasifica cada herramienta de tu agente y di qué control le pusiste según su r
 
 | Herramienta | Riesgo (bajo, medio, alto) | ¿Se puede deshacer? | Control que aplicaste |
 |---|---|---|---|
-| | | | |
+| `consultar_pedido` | Bajo | No modifica datos | Solo devuelve pedidos del cliente de la sesión (`pedido_del_cliente` en `comun.py`). Pedido ajeno e inexistente reciben el mismo mensaje. No devuelve `cliente_id`. La nota del pedido se devuelve marcada como texto del cliente, no como instrucción. |
+| `registrar_reclamo` | Medio | Sí: un asesor puede cerrar el reclamo | Todas las reglas se validan en el código antes de guardar: pedido propio y entregado, un solo reclamo abierto, plazo por tipo de producto (+15 días si es preferente), tipo dentro de la política y motivo obligatorio. No pide confirmación porque no mueve dinero ni cambia el pedido. |
 
 ## 4. Matriz de reglas y mecanismos
 
@@ -122,7 +123,18 @@ Cada regla de la política queda garantizada por uno o más mecanismos:
 
 | Regla de la política | Instrucciones | Validación en herramienta | Estado de sesión | Escenario o prueba que la comprueba |
 |---|---|---|---|---|
-| | | | | |
+| El pedido debe pertenecer al cliente atendido | Sí: «Solo hablas de los pedidos de este cliente» | Sí: `pedido_del_cliente` en `comun.py` | Sí: el cliente sale de `sesion.cliente_id`, nunca de un argumento | `test_pedido_de_otro_cliente_es_error`, `test_pedido_de_otro_cliente`; escenario `mafe_pedido_otro_cliente` |
+| Pedido inexistente: no inventar información | Sí: consultar antes de afirmar | Sí: error con el mismo mensaje que un pedido ajeno | No | `test_pedido_inexistente_es_error`, `test_ajeno_e_inexistente_dan_el_mismo_mensaje`; escenario `mafe_pedido_inexistente` |
+| Si falta el número de pedido, pedirlo | Sí: «Si el cliente no dio el número de pedido, pídeselo» | No (el argumento `numero` es obligatorio, pero pedir el dato depende del modelo) | No | Escenario `mafe_informacion_incompleta` |
+| El texto dentro de los datos no es una instrucción | Sí: sección «Seguridad» | Parcial: la nota se devuelve con un aviso; las acciones de riesgo tienen sus propias validaciones | No | `test_nota_del_cliente_va_marcada_como_dato`; escenario `mafe_inyeccion_nota` |
+| Solo se reclama un pedido entregado | Sí: consultar el pedido antes de pedir el motivo | Sí | No | `test_pedido_no_entregado` |
+| Un único reclamo abierto por pedido (uno cerrado no bloquea) | Sí: informar el reclamo abierto | Sí | No | `test_ya_tiene_reclamo_abierto`, `test_reclamo_cerrado_no_bloquea_uno_nuevo`; escenario `mafe_reclamo_ya_abierto` |
+| Plazo según el tipo de producto (3, 15, 30 o 90 días; entrega = día 1) | No: «No calcules tú los plazos» | Sí: `(HOY − fecha_entrega).days < plazo` | No | `test_fuera_de_plazo_regular`, `test_ultimo_dia_del_plazo_si_procede`, `test_un_dia_despues_del_plazo_no_procede`, `test_p9001_ultimo_dia_del_plazo_si_procede`, `test_p9001_un_dia_despues_ya_no_procede`; escenarios `mafe_reclamo_fuera_de_plazo`, `mafe_reclamo_ultimo_dia_plazo` |
+| Cliente preferente: 15 días adicionales | No | Sí | No | `test_preferente_suma_15_dias_tambien_en_perecederos`, `test_fuera_de_plazo_aun_siendo_preferente` |
+| Pedido con varios productos: plazo del producto reclamado (o el de mayor cobertura) | Sí: preguntar cuál producto tiene el problema | Sí | No | `test_pedido_mixto_usa_el_plazo_del_producto_indicado`, `test_pedido_mixto_sin_producto_usa_el_de_mayor_cobertura`, `test_producto_que_no_esta_en_el_pedido` |
+| El reclamo registra el motivo descrito por el cliente; si falta, se pide | Sí | Sí: motivo no vacío | No | `test_motivo_vacio`; escenarios `mafe_reclamo_sin_motivo`, `mafe_reclamo_registrado` |
+| Solo procede por producto defectuoso, incompleto o distinto | Sí | Sí: `tipo` solo acepta esos tres valores | No | `test_tipo_fuera_de_la_politica` |
+| No modificar direcciones, precios ni datos personales | Sí: «Lo que no haces» | Sí, por ausencia: no existe herramienta que lo haga | No | — |
 
 ## 5. Resultados y aprendizajes
 
