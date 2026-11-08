@@ -1,0 +1,21 @@
+{
+  "nombre": "Reembolso por reclamo abierto",
+  "descripcion": "C-04 tiene un reclamo abierto sobre P-9201 ($150.000, por debajo del tope) y pide el reembolso. Tras confirmar, queda aprobado y no se escala.",
+  "cliente": "C-04",
+  "turnos": [
+    "Quiero el reembolso de mi pedido P-9201, la aspiradora no enciende.",
+    "Sí, confirmo."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["solicitar_reembolso"],
+    "herramientas_no_llamadas": ["cancelar_pedido"],
+    "argumentos": [
+      { "herramienta": "solicitar_reembolso", "contiene": { "numero": "P-9201" } }
+    ],
+    "estado_final": [
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-9201" }, "cantidad": 1 },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-9201" }, "esperado": { "estado": "aprobado", "monto": 150000 } },
+      { "archivo": "escalamientos", "donde": { "cliente_id": "C-04" }, "cantidad": 0 }
+    ]
+  }
+}
