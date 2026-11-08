@@ -77,6 +77,30 @@ def _pesos(monto: int) -> str:
     return f"${monto:,}".replace(",", ".")
 
 
+def validar_reembolso(pedido: repositorio.Pedido, monto: int) -> None:
+    """Revisa que se pueda reembolsar ese monto de ese pedido; si no, lanza ErrorDeHerramienta.
+
+    Un pedido tiene un solo reembolso y siempre es por el valor total pagado. La usan
+    registrar_reembolso (al guardar) y solicitar_reembolso (antes de pedir la confirmación al
+    cliente, para no pedirle confirmar algo que luego se va a negar)."""
+    previo = next((r for r in repositorio.leer_reembolsos() if r.numero_pedido == pedido.numero), None)
+    if previo:
+        raise ErrorDeHerramienta(
+            f"Este pedido ya tiene un reembolso ({previo.id}) por {_pesos(previo.monto)} en estado "
+            f"'{previo.estado}'. No se registra otro: infórmale al cliente el estado de ese reembolso."
+        )
+    if monto <= 0:
+        raise ErrorDeHerramienta("El monto del reembolso debe ser mayor que cero.")
+    if monto > pedido.total:
+        raise ErrorDeHerramienta(
+            f"El reembolso no puede superar el valor pagado por el pedido ({_pesos(pedido.total)})."
+        )
+    if monto != pedido.total:
+        raise ErrorDeHerramienta(
+            f"El reembolso procede solo por el valor total pagado ({_pesos(pedido.total)})."
+        )
+
+
 def registrar_reembolso(
     sesion: Sesion, pedido: repositorio.Pedido, monto: int, motivo: str
 ) -> repositorio.Reembolso:
@@ -99,25 +123,8 @@ def registrar_reembolso(
     if not motivo:
         raise ErrorDeHerramienta("Falta el motivo del reembolso.")
 
+    validar_reembolso(pedido, monto)
     reembolsos = repositorio.leer_reembolsos()
-    previo = next((r for r in reembolsos if r.numero_pedido == pedido.numero), None)
-    if previo:
-        raise ErrorDeHerramienta(
-            f"Este pedido ya tiene un reembolso ({previo.id}) por {_pesos(previo.monto)} en estado "
-            f"'{previo.estado}'. No se registra otro: infórmale al cliente el estado de ese reembolso."
-        )
-
-    if monto <= 0:
-        raise ErrorDeHerramienta("El monto del reembolso debe ser mayor que cero.")
-    if monto > pedido.total:
-        raise ErrorDeHerramienta(
-            f"El reembolso no puede superar el valor pagado por el pedido ({_pesos(pedido.total)})."
-        )
-    if monto != pedido.total:
-        raise ErrorDeHerramienta(
-            f"El reembolso procede solo por el valor total pagado ({_pesos(pedido.total)})."
-        )
-
     numeros = [int(r.id.split("-")[1]) for r in reembolsos if r.id.startswith("RE-")]
     estado = "aprobado" if monto <= TOPE_REEMBOLSO else "solicitado"
     nuevo = repositorio.Reembolso(
