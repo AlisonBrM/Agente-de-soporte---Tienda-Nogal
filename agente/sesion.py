@@ -1,6 +1,6 @@
 """Cliente autenticado del modelo y estado de la sesión de un cliente de la tienda."""
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from openai import OpenAI
 
@@ -31,3 +31,5 @@ class Sesion:
     turnos: int = 0
     tokens_entrada: int = 0
     tokens_salida: int = 0
+    ultimo_mensaje: str = ""
+    confirmaciones_pendientes: dict[str, int] = field(default_factory=dict)
