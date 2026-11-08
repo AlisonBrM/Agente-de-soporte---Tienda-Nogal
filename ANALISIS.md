@@ -112,6 +112,7 @@ Clasifica cada herramienta de tu agente y di qué control le pusiste según su r
 |---|---|---|---|
 | `consultar_pedido` | Bajo | No modifica datos | Solo devuelve pedidos del cliente de la sesión (`pedido_del_cliente` en `comun.py`). Pedido ajeno e inexistente reciben el mismo mensaje. No devuelve `cliente_id`. La nota del pedido se devuelve marcada como texto del cliente, no como instrucción. |
 | `registrar_reclamo` | Medio | Sí: un asesor puede cerrar el reclamo | Todas las reglas se validan en el código antes de guardar: pedido propio y entregado, un solo reclamo abierto, plazo por tipo de producto (+15 días si es preferente), tipo dentro de la política y motivo obligatorio. No pide confirmación porque no mueve dinero ni cambia el pedido. |
+| `escalar_a_asesor` | Medio | Sí: un asesor puede cerrar o descartar el escalamiento; no cambia pedidos ni mueve dinero | Cliente tomado de la sesión. Pedido opcional: si es ajeno o inexistente se escala sin asociarlo y sin revelar nada. Para `reembolso_sobre_tope` el código exige un pedido propio con total > $300.000. Resumen obligatorio y sin duplicados el mismo día. No pide confirmación. |
 
 ## 4. Matriz de reglas y mecanismos
 
@@ -135,6 +136,9 @@ Cada regla de la política queda garantizada por uno o más mecanismos:
 | El reclamo registra el motivo descrito por el cliente; si falta, se pide | Sí | Sí: motivo no vacío | No | `test_motivo_vacio`; escenarios `mafe_reclamo_sin_motivo`, `mafe_reclamo_registrado` |
 | Solo procede por producto defectuoso, incompleto o distinto | Sí | Sí: `tipo` solo acepta esos tres valores | No | `test_tipo_fuera_de_la_politica` |
 | No modificar direcciones, precios ni datos personales | Sí: «Lo que no haces» | Sí, por ausencia: no existe herramienta que lo haga | No | — |
+| Escalar cuando el cliente lo pide, el reembolso supera $300.000, hay tres intentos sin resolver o cobro no reconocido/fraude | Sí: sección «Escalamiento» | Parcial: el motivo solo acepta esos cuatro valores; `reembolso_sobre_tope` se valida contra el total del pedido. El conteo de tres intentos depende del modelo | No | `test_motivo_fuera_de_la_politica_es_argumento_invalido`, `test_reembolso_sobre_tope_con_pedido_que_no_supera_el_tope_es_error`; escenarios `viviana_escalar_pide_asesor`, `viviana_escalar_cobro_no_reconocido` |
+| Al escalar: resumen breve y aviso de un día hábil | Sí | Sí: resumen obligatorio; la respuesta incluye el aviso | No | `test_resumen_vacio_es_error_y_no_guarda`, `test_cliente_pide_asesor_sin_pedido` |
+| El pedido ajeno no se revela al escalar | Sí | Sí: `pedido_del_cliente`; la respuesta es igual para ajeno e inexistente | No | `test_pedido_ajeno_escala_sin_asociarlo_ni_revelarlo`, `test_pedido_inexistente_da_la_misma_respuesta_que_uno_ajeno` |
 
 ## 5. Resultados y aprendizajes
 
