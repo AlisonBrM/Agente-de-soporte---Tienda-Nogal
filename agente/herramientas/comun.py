@@ -70,3 +70,73 @@ def registrar_escalamiento(
     )
     repositorio.guardar_escalamientos(escalamientos + [nuevo])
     return nuevo
+
+
+def _pesos(monto: int) -> str:
+    """300000 -> '$300.000'."""
+    return f"${monto:,}".replace(",", ".")
+
+
+def registrar_reembolso(
+    sesion: Sesion, pedido: repositorio.Pedido, monto: int, motivo: str
+) -> repositorio.Reembolso:
+    """Guarda un reembolso en reembolsos.json. Lo usan solicitar_reembolso y cancelar_pedido
+    (la cancelación genera un reembolso automático), así la regla del tope vive en un solo lugar.
+
+    Reglas que valida aquí, sin importar quién la llame:
+    - El pedido es del cliente de la sesión.
+    - Un pedido tiene un solo reembolso (el reembolso es siempre por el valor total pagado).
+    - El monto es el valor total del pedido: ni más (nunca supera lo pagado) ni menos.
+    - Hasta $300.000 queda 'aprobado'. Por encima queda 'solicitado' y se escala a un asesor.
+
+    No valida si el pedido está cancelado o tiene un reclamo abierto: eso lo revisa
+    solicitar_reembolso, porque cancelar_pedido llama esta función justo al cancelar.
+    """
+    if pedido.cliente_id != sesion.cliente_id:
+        raise ErrorDeHerramienta(PEDIDO_NO_ENCONTRADO)
+
+    motivo = motivo.strip()
+    if not motivo:
+        raise ErrorDeHerramienta("Falta el motivo del reembolso.")
+
+    reembolsos = repositorio.leer_reembolsos()
+    previo = next((r for r in reembolsos if r.numero_pedido == pedido.numero), None)
+    if previo:
+        raise ErrorDeHerramienta(
+            f"Este pedido ya tiene un reembolso ({previo.id}) por {_pesos(previo.monto)} en estado "
+            f"'{previo.estado}'. No se registra otro: infórmale al cliente el estado de ese reembolso."
+        )
+
+    if monto <= 0:
+        raise ErrorDeHerramienta("El monto del reembolso debe ser mayor que cero.")
+    if monto > pedido.total:
+        raise ErrorDeHerramienta(
+            f"El reembolso no puede superar el valor pagado por el pedido ({_pesos(pedido.total)})."
+        )
+    if monto != pedido.total:
+        raise ErrorDeHerramienta(
+            f"El reembolso procede solo por el valor total pagado ({_pesos(pedido.total)})."
+        )
+
+    numeros = [int(r.id.split("-")[1]) for r in reembolsos if r.id.startswith("RE-")]
+    estado = "aprobado" if monto <= TOPE_REEMBOLSO else "solicitado"
+    nuevo = repositorio.Reembolso(
+        id=f"RE-{max(numeros, default=0) + 1:03d}",
+        numero_pedido=pedido.numero,
+        cliente_id=sesion.cliente_id,
+        fecha=repositorio.HOY,
+        monto=monto,
+        motivo=motivo,
+        estado=estado,
+    )
+    repositorio.guardar_reembolsos(reembolsos + [nuevo])
+
+    if estado == "solicitado":
+        registrar_escalamiento(
+            sesion,
+            "reembolso_sobre_tope",
+            f"Reembolso de {_pesos(monto)} del pedido {pedido.numero} pendiente de aprobación "
+            f"por un asesor (supera el tope de {_pesos(TOPE_REEMBOLSO)}). Motivo: {motivo}",
+            pedido.numero,
+        )
+    return nuevo
