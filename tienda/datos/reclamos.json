@@ -14,5 +14,13 @@
     "fecha": "2026-10-05",
     "motivo": "La chaqueta llegó en una talla distinta. Se resolvió con cambio de talla.",
     "estado": "cerrado"
+  },
+  {
+    "id": "R-003",
+    "numero_pedido": "P-9201",
+    "cliente_id": "C-04",
+    "fecha": "2026-11-01",
+    "motivo": "La aspiradora no enciende.",
+    "estado": "abierto"
   }
 ]

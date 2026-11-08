@@ -255,5 +255,21 @@
       }
     ],
     "total": 120000
+  },
+  {
+    "numero": "P-9201",
+    "cliente_id": "C-04",
+    "fecha_compra": "2026-10-24",
+    "fecha_entrega": "2026-10-30",
+    "estado": "entregado",
+    "productos": [
+      {
+        "nombre": "Aspiradora robot",
+        "categoria": "hogar",
+        "cantidad": 1,
+        "precio_unitario": 150000
+      }
+    ],
+    "total": 150000
   }
 ]
