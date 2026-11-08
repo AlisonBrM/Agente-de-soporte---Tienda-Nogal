@@ -1,0 +1,18 @@
+{
+  "nombre": "Escalamiento a pedido del cliente",
+  "descripcion": "C-02 pide hablar con una persona, sin mencionar ningún pedido. El agente debe escalar de una vez, sin pedir datos de más.",
+  "cliente": "C-02",
+  "turnos": [
+    "Prefiero hablar con una persona, por favor pásame con un asesor."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["escalar_a_asesor"],
+    "herramientas_no_llamadas": ["cancelar_pedido", "solicitar_reembolso", "registrar_reclamo"],
+    "argumentos": [
+      { "herramienta": "escalar_a_asesor", "contiene": { "motivo": "pide_asesor" } }
+    ],
+    "estado_final": [
+      { "archivo": "escalamientos", "donde": { "cliente_id": "C-02" }, "cantidad": 1 }
+    ]
+  }
+}

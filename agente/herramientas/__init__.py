@@ -2,5 +2,10 @@
 from agente.herramientas import ejemplo  # noqa: F401
 from agente.herramientas import consultas  # noqa: F401
 from agente.herramientas import reclamos  # noqa: F401
+
 from agente.herramientas import cancelar  # noqa: F401
+
+
+from agente.herramientas import escalamiento  # noqa: F401
+from agente.herramientas import reembolsos  # noqa: F401
 

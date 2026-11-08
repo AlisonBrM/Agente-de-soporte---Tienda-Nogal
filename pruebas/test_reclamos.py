@@ -40,7 +40,7 @@ def test_registra_reclamo_dentro_de_plazo():
 
 def test_id_consecutivo():
     resultado = reclamar("C-01", "P-1002")
-    assert resultado["reclamo"]["id"] == "R-003"  # la semilla trae R-001 y R-002
+    assert resultado["reclamo"]["id"] == "R-004"  # la semilla trae R-001, R-002 y R-003 (P-9201)
 
 
 def test_reclamo_cerrado_no_bloquea_uno_nuevo():
