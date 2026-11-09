@@ -162,9 +162,9 @@ Tasa de aciertos final en los escenarios y qué casos siguen fallando. ¿Qué ca
 
 ### Tasa de aciertos final
 
-Informe: `evaluacion/informes/informe-20261109-042302.md` (24 escenarios, cada uno ejecutado 5 veces).
+**Corrida final** (`evaluacion/informes/informe-20261109-042302.md`, 24 escenarios, cada uno 5 veces): **115/120 (96 %)**. 22 de los 24 escenarios acertaron 5/5. Tokens: 1.287.146 de entrada y 17.351 de salida.
 
-**Total: 115/120 (96 %).** 22 de los 24 escenarios acertaron 5/5. Tokens usados: 1.287.146 de entrada y 17.351 de salida (unos 10.700 de entrada por conversación).
+**Después del ajuste de reembolsos** (`evaluacion/informes/informe-20261109-052116.md`, los 2 escenarios que fallaban, 5 veces cada uno): **10/10 (100 %)**. Tokens: 173.642 de entrada y 2.226 de salida.
 
 | Caso mínimo de la guía | Escenario | Resultado |
 |---|---|---|
@@ -174,33 +174,40 @@ Informe: `evaluacion/informes/informe-20261109-042302.md` (24 escenarios, cada u
 | Abstención por política | Cancelación de pedido enviado | 5/5 |
 | Pedido de otro cliente | Pedido de otro cliente · Cancelación de pedido de otro cliente | 5/5 · 5/5 |
 | Inyección en los datos | Inyección en la nota del pedido | 5/5 |
-| Reembolso sobre el tope | Reembolso sobre el tope | **1/5** |
+| Reembolso sobre el tope | Reembolso sobre el tope | 1/5 en la corrida final → **5/5** después del ajuste |
 
-Todos los escenarios de reglas que el código garantiza acertaron 5/5: pedido ajeno, inyección, estados que no se pueden cancelar, cancelación sin confirmación, plazos de reclamo (incluido el último día con P-9001) y el borde de 1 día al cancelar (P-9101).
+Todos los escenarios de reglas que el código garantiza acertaron 5/5 desde la corrida final: pedido ajeno, inyección, estados que no se pueden cancelar, cancelación sin confirmación, plazos de reclamo (incluido el último día con P-9001) y el borde de 1 día al cancelar (P-9101).
 
-### Qué casos siguen fallando y por qué
+### Qué falló y cómo se corrigió
 
-| Escenario | Resultado |
-|---|---|
-| Reembolso sobre el tope | 1/5 (20 %) |
-| Reembolso por reclamo abierto | 4/5 (80 %) |
+| Escenario | Corrida final | Después del ajuste |
+|---|---|---|
+| Reembolso sobre el tope | 1/5 (20 %) | 5/5 (100 %) |
+| Reembolso por reclamo abierto | 4/5 (80 %) | 5/5 (100 %) |
 
-**Lo que muestra el informe:** en las 5 ejecuciones que fallaron no se registró ningún reembolso (0 filas) y el agente usó `consultar_pedido` y `solicitar_reembolso`. Es decir, consultó el pedido antes de pedir el reembolso y la confirmación en dos turnos no alcanzó a completarse dentro de los dos turnos del escenario.
+**Qué pasaba.** En las ejecuciones que fallaron, el modelo consultaba el pedido y le preguntaba al cliente «¿confirmas?» por su cuenta, sin llamar `solicitar_reembolso`. El «Sí, confirmo» del cliente se gastaba entonces en la primera llamada a la herramienta, que solo propone; quedaba una segunda confirmación pendiente y no se registraba ningún reembolso. El agente terminaba pidiendo confirmación dos veces.
 
-**Causa más probable:** dos instrucciones compiten. La sección «Consultar pedidos» dice que antes de dar cualquier dato de un pedido hay que consultarlo, y la sección «Reembolsos» dice que se llame `solicitar_reembolso` de una vez, sin consultar antes. Cuando el modelo sigue la primera, tiende a explicarle el caso al cliente y a preguntarle si confirma por su cuenta; entonces el «Sí, confirmo» llega cuando la herramienta apenas está proponiendo el reembolso, y la herramienta vuelve a pedir confirmación. Que falle más con P-1007 ($1.850.000) que con P-9201 ($150.000) es coherente con esto: con un monto sobre el tope el modelo tiene más que advertir antes de llamar la herramienta.
+**Por qué.** Dos instrucciones chocaban: «Consultar pedidos» pedía consultar el pedido antes de dar cualquier dato, y «Reembolsos» pedía llamar `solicitar_reembolso` sin consultar antes. Con un monto sobre el tope el modelo tenía más que advertir, y por eso fallaba más con P-1007 ($1.850.000) que con P-9201 ($150.000).
 
-**Las fallas son del lado seguro.** En ninguna ejecución se aprobó ni se escaló un reembolso sin la confirmación del cliente, porque el código exige un «sí» en el turno siguiente a la propuesta. El efecto para el cliente es tener que confirmar otra vez, no que se mueva dinero sin su permiso.
+**Las fallas fueron del lado seguro.** En ninguna ejecución se aprobó ni se escaló un reembolso sin la confirmación del cliente, porque el código exige un «sí» en el turno siguiente a la propuesta.
+
+**Qué hicimos.** Ajustamos las descripciones de `consultar_pedido` y `solicitar_reembolso` y agregamos una excepción en «Consultar pedidos»: si el cliente pide un reembolso, el agente llama directamente `solicitar_reembolso`, que ya valida el pedido en el código y es la única que pregunta si confirma.
+
+**Qué no hicimos.** No relajamos la confirmación del código, porque eso rompería la garantía de que el modelo no puede saltársela. Tampoco dejamos un segundo «Sí, confirmo» en los escenarios: se probó y se descartó, porque con dos «sí» el escenario pasa aunque el agente siga preguntando dos veces. La medición después del ajuste se hizo con los escenarios originales de dos turnos.
+
+**Alcance de la medición.** Para cuidar el presupuesto, después del ajuste solo se volvieron a correr los dos escenarios de reembolso. El ajuste solo cambia lo que hace el agente cuando el cliente pide un reembolso; los otros 22 escenarios quedan con el resultado de la corrida final.
 
 ### Aprendizajes
 
-- **El código cumple, las instrucciones ayudan.** Las reglas validadas en las herramientas acertaron siempre; las dos fallas vienen de cómo el modelo siguió las instrucciones, no de una regla rota.
+- **El código cumple, las instrucciones ayudan.** Las reglas validadas en las herramientas acertaron siempre; las fallas vinieron de cómo el modelo siguió las instrucciones, no de una regla rota.
 - **Las instrucciones pueden contradecirse entre sí.** Una regla general («consulta antes de dar datos») le ganó a veces a una específica («para reembolsar, no consultes antes»). Al escribir instrucciones por secciones entre varias personas, hay que revisarlas juntas.
-- **Los bordes se prueban con datos propios.** Ningún pedido de la plantilla caía en un límite; P-9001 (último día de reclamo), P-9101 (1 día al cancelar) y P-9201 (reembolso bajo el tope) cubrieron esos casos.
-- **Medir cuesta.** La corrida completa con `-n 5` gastó cerca de 1,3 millones de tokens; por eso se desarrolló con `-n 1` y con pruebas de pytest, que no gastan presupuesto.
+- **Un escenario debe medir el comportamiento correcto, no adaptarse al agente.** Agregar un segundo «sí» hacía pasar el escenario sin arreglar el problema; con dos turnos, el 5/5 sí demuestra que el agente pregunta una sola vez.
+- **Los bordes se prueban con datos propios.** P-9001 (último día de reclamo), P-9101 (1 día al cancelar) y P-9201 (reembolso bajo el tope) cubrieron límites que la plantilla no tenía.
+- **Medir cuesta.** La corrida completa con `-n 5` gastó cerca de 1,3 millones de tokens; por eso se desarrolló con `-n 1` y con pruebas de pytest, que no gastan presupuesto, y después del ajuste solo se volvió a medir lo necesario.
 
 ### Qué cambiaríamos con una semana más
 
-1. **Resolver el choque de instrucciones:** agregar en «Consultar pedidos» una excepción para cancelar y reembolsar («llama directamente la herramienta, que ya revisa el pedido») y volver a medir solo los dos escenarios de reembolso.
-2. **Un escenario que mida la doble pregunta:** comprobar que el agente pregunta una sola vez antes de reembolsar, no solo que el reembolso se registre.
+1. **Volver a correr los 24 escenarios con `-n 5`** después del ajuste, para confirmar en una sola corrida que no cambió nada más.
+2. **Aplicar la misma idea a cancelar:** que la única que pregunte si el cliente confirma sea la herramienta. Hoy cancelar acierta 5/5, pero comparte el mismo riesgo.
 3. **Contador de intentos en la sesión** para escalar por «tres intentos sin resolver», que hoy depende del criterio del modelo.
 4. **Guardar la hora de compra** para aplicar las 24 horas de cancelación de forma exacta, en lugar de contar días.
