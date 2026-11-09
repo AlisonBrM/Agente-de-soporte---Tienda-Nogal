@@ -75,6 +75,8 @@ def test_una_confirmacion_no_se_reutiliza():
         "si, cancelalo",
         "Si, confirmo la cancelación",
         "De acuerdo, procede",
+        "sí por favor",
+        "Sí.",
     ],
 )
 def test_frases_afirmativas(frase):
@@ -95,7 +97,41 @@ def test_frases_afirmativas(frase):
         "no, gracias",
         "¿qué pasa si lo cancelo?",
         "dime que pasa si cancelo",
+        # Duda o condiciones: no cuentan como confirmación.
+        "bueno, déjame pensarlo",
+        "ok, pero primero dime cuánto me devuelven",
+        "claro, aunque prefiero esperar",
+        "quiero confirmar algo primero",
+        # "si" condicional, no afirmativo.
+        "si me explicas por qué",
+        "si puedes, dime el estado del pedido",
+        # Pregunta, aunque diga "sí".
+        "¿sí?",
     ],
 )
 def test_frases_negativas_o_con_duda(frase):
     assert es_afirmativo(frase) is False
+
+
+def test_pendiente_vence_si_pasa_mas_de_un_turno():
+    # Propuesta en el turno 1; el cliente dice "ok" en el turno 3 (por otro tema).
+    sesion = Sesion(cliente_id="C-01", turnos=1, ultimo_mensaje="quiero cancelar P-1001")
+    registrar_pendiente(sesion, "cancelar:P-1001")
+
+    sesion.turnos = 3
+    sesion.ultimo_mensaje = "ok"
+
+    assert verificar_confirmacion(sesion, "cancelar:P-1001") is False
+    # La pendiente se descarta: el agente debe volver a preguntar.
+    assert "cancelar:P-1001" not in sesion.confirmaciones_pendientes
+
+
+def test_turno_siguiente_exacto_si_confirma():
+    # Control del caso anterior: en el turno 2 (el siguiente) el mismo "ok" sí confirma.
+    sesion = Sesion(cliente_id="C-01", turnos=1, ultimo_mensaje="quiero cancelar P-1001")
+    registrar_pendiente(sesion, "cancelar:P-1001")
+
+    sesion.turnos = 2
+    sesion.ultimo_mensaje = "ok"
+
+    assert verificar_confirmacion(sesion, "cancelar:P-1001") is True
