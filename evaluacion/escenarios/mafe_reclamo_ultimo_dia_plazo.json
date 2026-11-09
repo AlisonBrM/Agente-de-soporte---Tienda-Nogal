@@ -1,0 +1,19 @@
+{
+  "nombre": "Reclamo en el último día del plazo",
+  "descripcion": "C-01 reclama por P-9001 (pedido propio: ropa entregada el 4 de octubre, cliente regular, 30 días). Hoy, 2 de noviembre, es el último día del plazo: el reclamo debe registrarse.",
+  "cliente": "C-01",
+  "turnos": [
+    "Quiero reclamar el pedido P-9001, el pantalón llegó con una costura rota."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["registrar_reclamo"],
+    "herramientas_no_llamadas": ["cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [
+      { "herramienta": "registrar_reclamo", "contiene": { "numero": "P-9001" } }
+    ],
+    "estado_final": [
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-9001" }, "cantidad": 1 },
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-9001" }, "esperado": { "estado": "abierto", "cliente_id": "C-01" } }
+    ]
+  }
+}

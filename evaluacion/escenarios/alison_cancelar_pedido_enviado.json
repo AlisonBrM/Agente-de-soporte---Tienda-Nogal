@@ -1,0 +1,17 @@
+{
+  "nombre": "Cancelación de pedido enviado",
+  "descripcion": "C-02 pide cancelar P-1006, que ya figura como enviado. No se puede cancelar: el pedido debe seguir enviado y sin reembolsos.",
+  "cliente": "C-02",
+  "turnos": [
+    "Necesito cancelar mi pedido P-1006."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["registrar_reclamo", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1006" }, "esperado": { "estado": "enviado" } },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1006" }, "cantidad": 0 }
+    ]
+  }
+}

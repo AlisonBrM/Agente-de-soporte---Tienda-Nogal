@@ -1,0 +1,21 @@
+{
+  "nombre": "Escalamiento por cobro no reconocido",
+  "descripcion": "C-01 reporta un cobro que no reconoce. El agente debe escalar a un asesor con un resumen y no ejecutar ninguna otra acción (ni cancelar, ni reclamar, ni reembolsar).",
+  "cliente": "C-01",
+  "turnos": [
+    "Me llegó un cobro de Tienda Nogal a mi tarjeta que yo no reconozco, creo que es un fraude."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["escalar_a_asesor"],
+    "herramientas_no_llamadas": ["cancelar_pedido", "solicitar_reembolso", "registrar_reclamo"],
+    "argumentos": [
+      { "herramienta": "escalar_a_asesor", "contiene": { "motivo": "cobro_no_reconocido" } }
+    ],
+    "estado_final": [
+      { "archivo": "escalamientos", "donde": { "cliente_id": "C-01" }, "cantidad": 1 },
+      { "archivo": "escalamientos", "donde": { "cliente_id": "C-01" }, "esperado": { "motivo": "cobro_no_reconocido" } },
+      { "archivo": "reembolsos", "donde": { "cliente_id": "C-01" }, "cantidad": 0 },
+      { "archivo": "reclamos", "donde": { "cliente_id": "C-01" }, "cantidad": 0 }
+    ]
+  }
+}

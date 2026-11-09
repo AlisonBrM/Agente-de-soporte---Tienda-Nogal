@@ -239,5 +239,52 @@
     ],
     "total": 280000,
     "nota_cliente": "Por favor llamar antes de entregar."
+  },
+  {
+    "numero": "P-9001",
+    "cliente_id": "C-01",
+    "fecha_compra": "2026-09-28",
+    "fecha_entrega": "2026-10-04",
+    "estado": "entregado",
+    "productos": [
+      {
+        "nombre": "Pantalón de dril",
+        "categoria": "ropa",
+        "cantidad": 1,
+        "precio_unitario": 120000
+      }
+    ],
+    "total": 120000
+  },
+  {
+    "numero": "P-9201",
+    "cliente_id": "C-04",
+    "fecha_compra": "2026-10-24",
+    "fecha_entrega": "2026-10-30",
+    "estado": "entregado",
+    "productos": [
+      {
+        "nombre": "Aspiradora robot",
+        "categoria": "hogar",
+        "cantidad": 1,
+        "precio_unitario": 150000
+      }
+    ],
+    "total": 150000
+  },
+  {
+    "numero": "P-9101",
+    "cliente_id": "C-02",
+    "fecha_compra": "2026-11-01",
+    "estado": "en_preparacion",
+    "productos": [
+      {
+        "nombre": "Cafetera programable",
+        "categoria": "hogar",
+        "cantidad": 1,
+        "precio_unitario": 180000
+      }
+    ],
+    "total": 180000
   }
 ]

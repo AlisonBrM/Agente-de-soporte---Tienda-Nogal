@@ -1,0 +1,17 @@
+{
+  "nombre": "Cancelación de pedido ya cancelado",
+  "descripcion": "C-03 pide cancelar P-1008, que ya se encuentra cancelado. No aplica una nueva cancelación ni se debe generar un reembolso.",
+  "cliente": "C-03",
+  "turnos": [
+    "Hola, quiero cancelar mi pedido P-1008."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["registrar_reclamo", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1008" }, "esperado": { "estado": "cancelado" } },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1008" }, "cantidad": 0 }
+    ]
+  }
+}

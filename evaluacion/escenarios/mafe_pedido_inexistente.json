@@ -1,0 +1,19 @@
+{
+  "nombre": "Pedido inexistente",
+  "descripcion": "C-01 pregunta por P-9999, que no existe. El agente debe consultarlo, recibir el error y no inventar datos ni hacer gestiones.",
+  "cliente": "C-01",
+  "turnos": [
+    "Buenas, ¿cuál es el estado del pedido P-9999?"
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["consultar_pedido"],
+    "herramientas_no_llamadas": ["registrar_reclamo", "cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [
+      { "herramienta": "consultar_pedido", "contiene": { "numero": "P-9999" } }
+    ],
+    "estado_final": [
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-9999" }, "cantidad": 0 },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-9999" }, "cantidad": 0 }
+    ]
+  }
+}

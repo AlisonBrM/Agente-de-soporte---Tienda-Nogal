@@ -1,0 +1,24 @@
+{
+  "nombre": "Cancelación de pedido pagado sobre el tope",
+  "descripcion": "C-05 pide cancelar P-1013 (pagado, $2.300.000) y confirma en el segundo turno. Supera el tope de $300.000: el pedido queda cancelado, el reembolso queda solicitado y se crea el escalamiento.",
+  "cliente": "C-05",
+  "turnos": [
+    "Quiero cancelar mi pedido P-1013.",
+    "Sí, confirmo."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["cancelar_pedido"],
+    "herramientas_no_llamadas": ["registrar_reclamo", "solicitar_reembolso"],
+    "argumentos": [
+      { "herramienta": "cancelar_pedido", "contiene": { "numero": "P-1013" } }
+    ],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1013" }, "esperado": { "estado": "cancelado" } },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1013" }, "cantidad": 1 },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1013" }, "esperado": { "estado": "solicitado", "monto": 2300000 } },
+      { "archivo": "reembolsos", "donde": { "estado": "aprobado", "cliente_id": "C-05" }, "cantidad": 0 },
+      { "archivo": "escalamientos", "donde": { "cliente_id": "C-05", "numero_pedido": "P-1013" }, "cantidad": 1 },
+      { "archivo": "escalamientos", "donde": { "cliente_id": "C-05", "numero_pedido": "P-1013" }, "esperado": { "motivo": "reembolso_sobre_tope" } }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "nombre": "Reclamo sin motivo",
+  "descripcion": "C-01 quiere reclamar por P-1002 (entregado, dentro del plazo) pero no dice cuál es el problema. El agente debe pedir el motivo y no registrar nada todavía.",
+  "cliente": "C-01",
+  "turnos": [
+    "Quiero poner un reclamo por mi pedido P-1002."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["registrar_reclamo", "cancelar_pedido", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "reclamos", "donde": { "numero_pedido": "P-1002" }, "cantidad": 0 }
+    ]
+  }
+}
