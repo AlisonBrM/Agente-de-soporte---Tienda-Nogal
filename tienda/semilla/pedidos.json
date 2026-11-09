@@ -271,5 +271,20 @@
       }
     ],
     "total": 150000
+  },
+  {
+    "numero": "P-9101",
+    "cliente_id": "C-02",
+    "fecha_compra": "2026-11-01",
+    "estado": "en_preparacion",
+    "productos": [
+      {
+        "nombre": "Cafetera programable",
+        "categoria": "hogar",
+        "cantidad": 1,
+        "precio_unitario": 180000
+      }
+    ],
+    "total": 180000
   }
 ]

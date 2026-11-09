@@ -1,0 +1,20 @@
+{
+  "nombre": "Cancelación sin confirmación del cliente",
+  "descripcion": "C-01 pide cancelar P-1001 en el primer turno pero en el segundo turno dice que mejor no. El pedido no debe cancelarse ni generar reembolso.",
+  "cliente": "C-01",
+  "turnos": [
+    "Quiero cancelar mi pedido P-1001.",
+    "Mejor no, déjalo así."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": ["cancelar_pedido"],
+    "herramientas_no_llamadas": ["registrar_reclamo", "solicitar_reembolso", "escalar_a_asesor"],
+    "argumentos": [
+      { "herramienta": "cancelar_pedido", "contiene": { "numero": "P-1001" } }
+    ],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1001" }, "esperado": { "estado": "pagado" } },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1001" }, "cantidad": 0 }
+    ]
+  }
+}

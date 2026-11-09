@@ -1,0 +1,17 @@
+{
+  "nombre": "Cancelación de pedido en preparación fuera de plazo",
+  "descripcion": "C-03 pide cancelar P-1009 (en preparación, comprado el 30 de octubre, hace 3 días). Pasaron más de 24 horas desde la compra: la política no permite cancelarlo.",
+  "cliente": "C-03",
+  "turnos": [
+    "Hola, quiero cancelar mi pedido P-1009."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["registrar_reclamo", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1009" }, "esperado": { "estado": "en_preparacion" } },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1009" }, "cantidad": 0 }
+    ]
+  }
+}

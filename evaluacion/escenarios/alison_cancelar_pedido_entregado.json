@@ -1,0 +1,17 @@
+{
+  "nombre": "Cancelación de pedido entregado",
+  "descripcion": "C-01 pide cancelar P-1002, que ya figura como entregado. No aplica la cancelación: el pedido debe seguir entregado y sin reembolsos.",
+  "cliente": "C-01",
+  "turnos": [
+    "Quiero cancelar el pedido P-1002."
+  ],
+  "verificaciones": {
+    "herramientas_llamadas": [],
+    "herramientas_no_llamadas": ["registrar_reclamo", "solicitar_reembolso"],
+    "argumentos": [],
+    "estado_final": [
+      { "archivo": "pedidos", "donde": { "numero": "P-1002" }, "esperado": { "estado": "entregado" } },
+      { "archivo": "reembolsos", "donde": { "numero_pedido": "P-1002" }, "cantidad": 0 }
+    ]
+  }
+}
