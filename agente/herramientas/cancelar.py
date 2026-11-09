@@ -17,7 +17,11 @@ class ArgsCancelarPedido(BaseModel):
 def cancelar_pedido(sesion: Sesion, args: ArgsCancelarPedido) -> dict:
     """Cancela un pedido del cliente que tiene la sesión iniciada si la política lo permite
     (pagado, o en preparación con máximo 24 horas desde la compra) y genera el reembolso
-    correspondiente. Requiere confirmación explícita del cliente en el turno siguiente."""
+    correspondiente. Llámala directamente cuando el cliente pida cancelar: no consultes el pedido
+    antes ni le preguntes primero si está seguro. La primera vez responde 'requiere_confirmacion':
+    pregunta una sola vez al cliente si confirma y, cuando responda que sí, vuelve a llamarla con
+    el mismo número de pedido. Hasta $300.000 el reembolso queda aprobado; por encima queda
+    solicitado y el caso se escala automáticamente."""
     pedido = pedido_del_cliente(sesion, args.numero)
 
     if pedido.estado == "enviado":
