@@ -302,8 +302,11 @@ def test_no_duplica_un_reembolso_existente():
     sesion.ultimo_mensaje = "sí"
     resultado = llamar_cancelar(sesion, "P-1001")
 
-    assert resultado["cancelado"] is True
-    assert pedido_actual("P-1001").estado == "cancelado"
+    # Un pedido tiene un solo reembolso (comun.validar_reembolso): no se cancela
+    # para no dejar un pedido cancelado sin su reembolso, y el reembolso previo queda igual.
+    assert "error" in resultado
+    assert "ya tiene un reembolso" in resultado["error"]
+    assert pedido_actual("P-1001").estado == "pagado"
     reembolsos = reembolsos_de("P-1001")
     assert len(reembolsos) == 1
     assert reembolsos[0].id == "RE-001"

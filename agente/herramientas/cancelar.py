@@ -1,28 +1,16 @@
 """Cancelación de pedidos del cliente con confirmación explícita en dos turnos."""
 from pydantic import BaseModel, Field
 
-from agente.herramientas.comun import pedido_del_cliente
+from agente.herramientas.comun import pedido_del_cliente, registrar_reembolso, validar_reembolso
 from agente.herramientas.confirmacion import registrar_pendiente, verificar_confirmacion
 from agente.herramientas.registro import ErrorDeHerramienta, herramienta
 from agente.sesion import Sesion
 from tienda import repositorio
 
-TOPE_REEMBOLSO_AUTOMATICO = 300_000
-
-
 class ArgsCancelarPedido(BaseModel):
     numero: str = Field(
         description="Número del pedido que el cliente quiere cancelar, por ejemplo P-1001."
     )
-
-
-def _siguiente_id(elementos: list, prefijo: str) -> str:
-    numeros = [
-        int(e.id.split("-")[1])
-        for e in elementos
-        if "-" in e.id and e.id.split("-")[1].isdigit()
-    ]
-    return f"{prefijo}-{max(numeros, default=0) + 1:03d}"
 
 
 @herramienta
@@ -83,6 +71,11 @@ def cancelar_pedido(sesion: Sesion, args: ArgsCancelarPedido) -> dict:
             ),
         }
 
+    # El reembolso automático usa las funciones comunes de comun.py: la regla del tope,
+    # los ids y el escalamiento (si supera $300.000) quedan en un solo lugar.
+    # Se valida antes de cambiar el pedido para no dejarlo cancelado sin su reembolso.
+    validar_reembolso(pedido, pedido.total)
+
     pedidos = repositorio.leer_pedidos()
     for p in pedidos:
         if p.numero == pedido.numero:
@@ -90,44 +83,16 @@ def cancelar_pedido(sesion: Sesion, args: ArgsCancelarPedido) -> dict:
             break
     repositorio.guardar_pedidos(pedidos)
 
-    reembolsos = repositorio.leer_reembolsos()
-    reembolso_existente = next(
-        (r for r in reembolsos if r.numero_pedido == pedido.numero), None
+    reembolso_final = registrar_reembolso(
+        sesion, pedido, pedido.total, f"Reembolso automático por cancelación del pedido {pedido.numero}"
     )
-
     escalamiento_creado = None
-    if reembolso_existente is not None:
-        reembolso_final = reembolso_existente
-    else:
-        estado_reembolso = (
-            "aprobado" if pedido.total <= TOPE_REEMBOLSO_AUTOMATICO else "solicitado"
+    if reembolso_final.estado == "solicitado":
+        # registrar_reembolso ya creó el escalamiento; se busca para devolverlo en el resultado.
+        escalamiento_creado = next(
+            e for e in repositorio.leer_escalamientos()
+            if e.numero_pedido == pedido.numero and e.motivo == "reembolso_sobre_tope"
         )
-        reembolso_final = repositorio.Reembolso(
-            id=_siguiente_id(reembolsos, "RE"),
-            numero_pedido=pedido.numero,
-            cliente_id=sesion.cliente_id,
-            fecha=repositorio.HOY,
-            monto=pedido.total,
-            motivo=f"Cancelación del pedido {pedido.numero}",
-            estado=estado_reembolso,
-        )
-        repositorio.guardar_reembolsos(reembolsos + [reembolso_final])
-
-        if pedido.total > TOPE_REEMBOLSO_AUTOMATICO:
-            escalamientos = repositorio.leer_escalamientos()
-            escalamiento_creado = repositorio.Escalamiento(
-                id=_siguiente_id(escalamientos, "E"),
-                cliente_id=sesion.cliente_id,
-                numero_pedido=pedido.numero,
-                fecha=repositorio.HOY,
-                motivo="Aprobación de reembolso superior a $300.000 por cancelación",
-                resumen=(
-                    f"El cliente {sesion.cliente_id} canceló el pedido {pedido.numero} por "
-                    f"${pedido.total}. El reembolso ({reembolso_final.id}) supera $300.000 y "
-                    "queda pendiente de aprobación por un asesor."
-                ),
-            )
-            repositorio.guardar_escalamientos(escalamientos + [escalamiento_creado])
 
     resultado = {
         "cancelado": True,
