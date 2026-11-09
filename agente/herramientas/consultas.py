@@ -19,7 +19,7 @@ class ArgsConsultarPedido(BaseModel):
 @herramienta
 def consultar_pedido(sesion: Sesion, args: ArgsConsultarPedido) -> dict:
     """Consulta un pedido del cliente que tiene la sesión iniciada: estado, fechas, productos, total,
-    reclamos y reembolsos. Úsala antes de dar cualquier dato de un pedido. Solo devuelve pedidos de
+    reclamos y reembolsos. Úsala antes de dar cualquier dato de un pedido, pero no cuando el cliente pide un reembolso: en ese caso llama directamente solicitar_reembolso. Solo devuelve pedidos de
     este cliente; si el número no existe o es de otra persona, responde con un error."""
     pedido = pedido_del_cliente(sesion, args.numero)
 

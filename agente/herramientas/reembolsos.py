@@ -44,7 +44,7 @@ def _motivo(pedido: repositorio.Pedido) -> str:
 @herramienta
 def solicitar_reembolso(sesion: Sesion, args: ArgsSolicitarReembolso) -> dict:
     """Solicita el reembolso de un pedido del cliente que está cancelado o tiene un reclamo abierto.
-    Llámala directamente cuando el cliente pida el reembolso: no le preguntes antes si está seguro.
+    Llámala directamente cuando el cliente pida el reembolso, sin consultar el pedido antes y sin preguntarle si está seguro: la pregunta de confirmación la hace esta herramienta, no tú.
     La primera vez responde 'requiere_confirmacion' con un resumen: muéstraselo al cliente y pregunta
     una sola vez si confirma. Cuando el cliente responda que sí, vuelve a llamarla con los mismos
     datos. Hasta $300.000 queda aprobado; por encima lo aprueba un asesor y el caso se escala."""
